@@ -1,4 +1,5 @@
-import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, decimal, boolean } from "drizzle-orm/mysql-core";
+//import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, decimal, boolean } from "drizzle-orm/mysql-core";
+import { pgTable, serial, varchar, text, timestamp, integer, numeric, boolean, pgEnum } from "drizzle-orm/pg-core";
 
 /**
  * Core user table backing auth flow.
