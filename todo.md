@@ -53,4 +53,4 @@
 ## Deploy & Exportação
 - [x] Configurar vercel.json para deploy
 - [x] Criar README com instruções de configuração Supabase + Vercel
-- [ ] Gerar arquivo ZIP do projeto para download
+- [x] Gerar arquivo ZIP do projeto para download
