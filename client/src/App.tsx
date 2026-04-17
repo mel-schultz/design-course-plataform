@@ -5,48 +5,45 @@ import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
-import StudentDashboard from "./pages/StudentDashboard";
-import AdminDashboard from "./pages/AdminDashboard";
+import AuthPage from "./pages/AuthPage";
+import CourseCatalog from "./pages/CourseCatalog";
 import CourseDetail from "./pages/CourseDetail";
-import Checkout from "./pages/Checkout";
-import { useAuth } from "./_core/hooks/useAuth";
-import { Loader2 } from "lucide-react";
-
-function ProtectedRoute({ component: Component, requiredRole }: { component: React.ComponentType<any>; requiredRole?: string }) {
-  const { user, loading } = useAuth();
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="animate-spin w-8 h-8" />
-      </div>
-    );
-  }
-
-  if (!user) {
-    return <NotFound />;
-  }
-
-  if (requiredRole && user.role !== requiredRole) {
-    return <NotFound />;
-  }
-
-  return <Component />;
-}
+import LessonPlayer from "./pages/LessonPlayer";
+import StudentDashboard from "./pages/StudentDashboard";
+import StudentProfile from "./pages/StudentProfile";
+import SubscriptionPage from "./pages/SubscriptionPage";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminCourses from "./pages/admin/AdminCourses";
+import AdminCourseEdit from "./pages/admin/AdminCourseEdit";
+import AdminUsers from "./pages/admin/AdminUsers";
+import AdminPayments from "./pages/admin/AdminPayments";
+import AdminPlans from "./pages/admin/AdminPlans";
 
 function Router() {
   return (
     <Switch>
-      <Route path={"/"} component={Home} />
-      <Route path={"/login"} component={Login} />
-      <Route path={"/register"} component={Register} />
-      <Route path={"/student/dashboard"} component={() => <ProtectedRoute component={StudentDashboard} requiredRole="user" />} />
-      <Route path={"/student/course/:id"} component={() => <ProtectedRoute component={CourseDetail} requiredRole="user" />} />
-      <Route path={"/student/checkout/:courseId"} component={() => <ProtectedRoute component={Checkout} requiredRole="user" />} />
-      <Route path={"/admin/dashboard"} component={() => <ProtectedRoute component={AdminDashboard} requiredRole="admin" />} />
-      <Route path={"/404"} component={NotFound} />
+      {/* Public */}
+      <Route path="/" component={Home} />
+      <Route path="/auth" component={AuthPage} />
+      <Route path="/cursos" component={CourseCatalog} />
+      <Route path="/cursos/:slug" component={CourseDetail} />
+
+      {/* Student */}
+      <Route path="/minha-area" component={StudentDashboard} />
+      <Route path="/perfil" component={StudentProfile} />
+      <Route path="/assinatura" component={SubscriptionPage} />
+      <Route path="/aula/:id" component={LessonPlayer} />
+
+      {/* Admin */}
+      <Route path="/admin" component={AdminDashboard} />
+      <Route path="/admin/cursos" component={AdminCourses} />
+      <Route path="/admin/cursos/novo" component={AdminCourseEdit} />
+      <Route path="/admin/cursos/:id" component={AdminCourseEdit} />
+      <Route path="/admin/usuarios" component={AdminUsers} />
+      <Route path="/admin/pagamentos" component={AdminPayments} />
+      <Route path="/admin/planos" component={AdminPlans} />
+
+      <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>
   );
@@ -55,10 +52,7 @@ function Router() {
 function App() {
   return (
     <ErrorBoundary>
-      <ThemeProvider
-        defaultTheme="light"
-        switchable
-      >
+      <ThemeProvider defaultTheme="light" switchable>
         <TooltipProvider>
           <Toaster />
           <Router />

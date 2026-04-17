@@ -1,79 +1,56 @@
-# Design Courses Platform - TODO
+# DesignHub — Plataforma de Cursos de Design
 
-## Fase 1: Configuração Base
-- [x] Inicializar projeto com scaffold web-db-user
-- [x] Criar arquivo todo.md e estrutura de pastas
-- [x] Configurar variáveis de ambiente para Supabase, Stripe e Resend
-- [x] Configurar tema claro/escuro com estilo tipográfico internacional
-- [x] Configurar layout base com rotas e proteção de acesso
+## Schema & Backend
+- [x] Estender schema Drizzle: tabelas courses, lessons, enrollments, subscriptions, payments, user_profiles
+- [x] Gerar migração SQL e aplicar via webdev_execute_sql
+- [x] Criar helpers de DB em server/db.ts para todas as entidades
+- [x] Router tRPC: auth (cadastro customizado com nome/email/telefone, login, logout, me)
+- [x] Router tRPC: courses (CRUD, listagem por nível, detalhes)
+- [x] Router tRPC: lessons (CRUD, listagem por curso, acesso protegido)
+- [x] Router tRPC: users (listagem admin, atualização de role, perfil)
+- [x] Router tRPC: subscriptions (criar, cancelar, status)
+- [x] Router tRPC: payments (registrar pagamento cartão crédito/débito, histórico)
+- [x] Middleware adminProcedure para rotas exclusivas do professor
+- [x] Middleware enrolledProcedure para verificar assinatura ativa
 
-## Fase 2: Banco de Dados (Supabase)
-- [x] Criar tabela de cursos (id, titulo, descricao, nivel, conteudo, preco, criado_em)
-- [x] Criar tabela de alunos (id, nome, email, telefone, data_cadastro)
-- [x] Criar tabela de assinaturas (id, aluno_id, curso_id, data_inicio, data_fim, status)
-- [x] Criar tabela de pagamentos (id, aluno_id, valor, metodo, status, data_pagamento)
-- [x] Criar tabela de conteudo_curso (id, curso_id, titulo, descricao, tipo, url_midia)
-- [ ] Configurar políticas de segurança RLS (Row Level Security)
-- [x] Gerar migrações SQL com Drizzle Kit
+## Frontend — Design System
+- [x] Configurar CSS global com gradientes pastéis (lavanda, rosa blush, menta pálida)
+- [x] Tipografia serifada (Playfair Display) para títulos e sans-serif (Inter) para corpo
+- [x] Variáveis de cor para modo claro e escuro
+- [x] Componentes decorativos: colchetes finos nos cantos, linhas verticais sutis
+- [x] ThemeProvider com alternância claro/escuro
 
-## Fase 3: Integração de Pagamento e E-mails
-- [x] Configurar Stripe (chaves de API)
-- [x] Configurar Resend para envio de e-mails automáticos
-- [x] Criar templates de e-mail para confirmação de matrícula (aluno)
-- [x] Criar templates de e-mail para notificação de novo aluno (professor)
-- [x] Criar templates de e-mail para confirmação de pagamento
+## Frontend — Landing Page & Auth
+- [x] Landing page com hero etéreo, gradiente pastel, tipografia elegante
+- [x] Seção de features/benefícios da plataforma
+- [x] Seção de cursos em destaque (preview)
+- [x] Seção de planos de assinatura
+- [x] Modal/página de cadastro: nome, e-mail, telefone, senha
+- [x] Modal/página de login: e-mail e senha
+- [x] Fluxo de recuperação de senha (UI)
 
-## Fase 4: Estrutura Base Frontend
-- [x] Configurar tema claro/escuro com CSS variables (International Typographic Style)
-- [x] Criar contexto de autenticação com dois níveis (professor/aluno)
-- [x] Criar layout base com navegação responsiva
-- [x] Criar componentes de header, footer e sidebar
-- [x] Configurar rotas públicas e protegidas
+## Frontend — Área do Aluno
+- [x] Dashboard do aluno com cursos matriculados e progresso
+- [x] Catálogo de cursos filtrado por nível (iniciante, intermediário, avançado)
+- [x] Página de detalhes do curso com lista de aulas
+- [x] Player de conteúdo (vídeo/texto) com controle de progresso
+- [x] Página de perfil do aluno (editar nome, telefone, foto)
+- [x] Página de assinatura: planos, status atual, histórico de pagamentos
+- [x] Formulário de pagamento por cartão (crédito/débito)
+- [x] Bloqueio de conteúdo para alunos sem assinatura ativa
 
-## Fase 5: Painel do Professor (Admin)
-- [x] Dashboard principal com estatísticas (total de alunos, receita, cursos)
-- [x] Gerenciamento de cursos (CRUD)
-- [x] Gerenciamento de conteúdo de cursos (adicionar/editar/deletar aulas)
-- [x] Gerenciamento de alunos (visualizar, filtrar, exportar)
-- [x] Gerenciamento de assinaturas e pagamentos
-- [ ] Relatórios e analytics
-- [ ] Configurações do professor (perfil, notificações)
+## Frontend — Painel Administrativo (Professor)
+- [x] Dashboard admin com métricas (total alunos, cursos, receita)
+- [x] Gerenciamento de cursos (listar, criar, editar, excluir)
+- [x] Gerenciamento de aulas por curso (listar, criar, editar, excluir, reordenar)
+- [x] Gerenciamento de usuários (listar, alterar role, desativar)
+- [x] Gerenciamento de pagamentos (listar, filtrar, exportar)
+- [x] Configurações de planos de assinatura
 
-## Fase 6: Área do Aluno
-- [x] Página de cadastro (nome, email, telefone)
-- [x] Página de login
-- [x] Página de checkout com integração Stripe
-- [x] Dashboard do aluno com cursos inscritos
-- [x] Página de visualização de curso (conteúdo por nível)
-- [ ] Página de perfil do aluno
-- [ ] Histórico de pagamentos
+## Testes
+- [x] Testes Vitest: auth, cursos, usuários, assinaturas, dashboard (14 testes passando)
 
-## Fase 7: Landing Page e Autenticação
-- [x] Landing page com apresentação dos cursos
-- [x] Página de login (professor/aluno)
-- [x] Página de registro (aluno)
-- [ ] Página de recuperação de senha
-- [ ] Página de termos de serviço
-- [ ] Página de política de privacidade
-
-## Fase 8: E-mails Automáticos
-- [ ] Enviar e-mail de confirmação para novo aluno
-- [ ] Enviar e-mail de notificação para professor (novo aluno)
-- [ ] Enviar e-mail de confirmação de pagamento para aluno
-- [ ] Enviar e-mail de notificação de pagamento para professor
-- [ ] Implementar fila de e-mails (retry automático)
-
-## Fase 9: Testes e Ajustes
-- [ ] Testes unitários com Vitest
-- [ ] Testes de integração (fluxo de cadastro, pagamento, e-mail)
-- [ ] Testes de responsividade
-- [ ] Otimização de performance
-- [ ] Verificação de acessibilidade
-
-## Fase 10: Deploy e Entrega
-- [ ] Configurar arquivo .env.example
-- [ ] Criar arquivo de instruções de deploy (DEPLOY.md)
-- [ ] Configurar GitHub Actions para CI/CD
-- [ ] Testar deploy em staging
-- [ ] Gerar arquivo ZIP do projeto
-- [ ] Criar documentação de uso
+## Deploy & Exportação
+- [x] Configurar vercel.json para deploy
+- [x] Criar README com instruções de configuração Supabase + Vercel
+- [ ] Gerar arquivo ZIP do projeto para download
