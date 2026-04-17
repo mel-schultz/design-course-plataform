@@ -1,56 +1,71 @@
-# DesignHub — Plataforma de Cursos de Design
+# Design Academy - TODO
 
-## Schema & Backend
-- [x] Estender schema Drizzle: tabelas courses, lessons, enrollments, subscriptions, payments, user_profiles
-- [x] Gerar migração SQL e aplicar via webdev_execute_sql
-- [x] Criar helpers de DB em server/db.ts para todas as entidades
-- [x] Router tRPC: auth (cadastro customizado com nome/email/telefone, login, logout, me)
-- [x] Router tRPC: courses (CRUD, listagem por nível, detalhes)
-- [x] Router tRPC: lessons (CRUD, listagem por curso, acesso protegido)
-- [x] Router tRPC: users (listagem admin, atualização de role, perfil)
-- [x] Router tRPC: subscriptions (criar, cancelar, status)
-- [x] Router tRPC: payments (registrar pagamento cartão crédito/débito, histórico)
-- [x] Middleware adminProcedure para rotas exclusivas do professor
-- [x] Middleware enrolledProcedure para verificar assinatura ativa
+## Arquitetura e Banco de Dados
+- [x] Definir esquema completo de tabelas (users, courses, modules, lessons, enrollments, etc)
+- [x] Configurar Drizzle ORM com todas as relações
+- [x] Criar migrações SQL
 
-## Frontend — Design System
-- [x] Configurar CSS global com gradientes pastéis (lavanda, rosa blush, menta pálida)
-- [x] Tipografia serifada (Playfair Display) para títulos e sans-serif (Inter) para corpo
-- [x] Variáveis de cor para modo claro e escuro
-- [x] Componentes decorativos: colchetes finos nos cantos, linhas verticais sutis
-- [x] ThemeProvider com alternância claro/escuro
+## Autenticação e Autorização
+- [x] Implementar sistema de roles (student, instructor, admin)
+- [x] Criar rotas protegidas por papel
+- [x] Implementar middleware de autenticação
+- [x] Sistema de perfil de usuário (avatar, bio, nome)
 
-## Frontend — Landing Page & Auth
-- [x] Landing page com hero etéreo, gradiente pastel, tipografia elegante
-- [x] Seção de features/benefícios da plataforma
-- [x] Seção de cursos em destaque (preview)
-- [x] Seção de planos de assinatura
-- [x] Modal/página de cadastro: nome, e-mail, telefone, senha
-- [x] Modal/página de login: e-mail e senha
-- [x] Fluxo de recuperação de senha (UI)
+## Páginas Públicas
+- [x] Página inicial (Home) com hero section e destaques
+- [x] Catálogo de cursos com filtros (categoria, nível, preço)
+- [x] Landing individual de curso (descrição, currículo, instrutor, depoimentos)
+- [x] Página de cadastro/login (via Manus OAuth)
 
-## Frontend — Área do Aluno
-- [x] Dashboard do aluno com cursos matriculados e progresso
-- [x] Catálogo de cursos filtrado por nível (iniciante, intermediário, avançado)
-- [x] Página de detalhes do curso com lista de aulas
-- [x] Player de conteúdo (vídeo/texto) com controle de progresso
-- [x] Página de perfil do aluno (editar nome, telefone, foto)
-- [x] Página de assinatura: planos, status atual, histórico de pagamentos
-- [x] Formulário de pagamento por cartão (crédito/débito)
-- [x] Bloqueio de conteúdo para alunos sem assinatura ativa
+## Painel do Aluno
+- [x] Dashboard com "Meus Cursos"
+- [x] Visualização de progresso por aula
+- [x] Player de aulas com navegação entre módulos
+- [x] Sistema de marcação de aula como concluída
+- [x] Emissão de certificado de conclusão
+- [ ] Sistema de avaliações e comentários por aula (parcial)
 
-## Frontend — Painel Administrativo (Professor)
-- [x] Dashboard admin com métricas (total alunos, cursos, receita)
-- [x] Gerenciamento de cursos (listar, criar, editar, excluir)
-- [x] Gerenciamento de aulas por curso (listar, criar, editar, excluir, reordenar)
-- [x] Gerenciamento de usuários (listar, alterar role, desativar)
-- [x] Gerenciamento de pagamentos (listar, filtrar, exportar)
-- [x] Configurações de planos de assinatura
+## Painel do Instrutor
+- [x] Criação e edição de cursos
+- [ ] Gestão de módulos e aulas (parcial)
+- [ ] Upload de vídeos para S3 (infraestrutura pronta)
+- [ ] Upload de PDFs e materiais complementares (infraestrutura pronta)
+- [ ] Edição de conteúdo em texto
+- [x] Visualização de estatísticas dos cursos
 
-## Testes
-- [x] Testes Vitest: auth, cursos, usuários, assinaturas, dashboard (14 testes passando)
+## Painel Administrativo
+- [x] Gestão de usuários (listar, editar, deletar)
+- [x] Controle de cursos publicados
+- [x] Métricas gerais (número de alunos, receita, cursos ativos)
+- [x] Dashboard com gráficos
 
-## Deploy & Exportação
-- [x] Configurar vercel.json para deploy
-- [x] Criar README com instruções de configuração Supabase + Vercel
-- [x] Gerar arquivo ZIP do projeto para download
+## Sistema de E-mails
+- [ ] Configurar serviço de e-mail (SendGrid ou similar)
+- [ ] E-mail de matrícula em curso
+- [ ] E-mail de conclusão de aula
+- [ ] E-mail de certificado de conclusão
+
+## Armazenamento S3
+- [x] Configurar integração com S3
+- [x] Upload de vídeos de aulas (infraestrutura)
+- [x] Upload de thumbnails de cursos (infraestrutura)
+- [x] Upload de materiais complementares (infraestrutura)
+
+## Design e Identidade Visual
+- [x] Implementar estilo tipográfico internacional
+- [x] Criar paleta de cores (branco, vermelho, preto)
+- [x] Definir tipografia (sans-serif)
+- [x] Criar componentes de UI consistentes
+- [x] Implementar grid system rigoroso
+
+## Testes e Otimizações
+- [ ] Testes unitários (Vitest)
+- [ ] Testes de integração
+- [ ] Otimização de performance
+- [ ] Verificação de acessibilidade
+
+## Deploy e Documentação
+- [x] Configurar variáveis de ambiente para Vercel
+- [ ] Deploy na Vercel
+- [x] Documentação da API
+- [x] Documentação de uso da plataforma

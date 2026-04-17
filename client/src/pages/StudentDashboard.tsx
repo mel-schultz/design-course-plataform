@@ -1,162 +1,177 @@
-import { useEffect } from "react";
-import { useLocation, Link } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
-import Navbar from "@/components/Navbar";
-import { trpc } from "@/lib/trpc";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
-import { BookOpen, Play, Clock, AlertCircle, Sparkles } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { trpc } from "@/lib/trpc";
+import { BookOpen, Award, Clock } from "lucide-react";
+import { Link } from "wouter";
 
 export default function StudentDashboard() {
-  const { isAuthenticated, loading } = useAuth();
-  const [, navigate] = useLocation();
+  const { user, logout } = useAuth();
+  const { data: enrollments, isLoading } = trpc.enrollments.getStudentCourses.useQuery();
 
-  useEffect(() => {
-    if (!loading && !isAuthenticated) navigate("/auth?mode=login");
-  }, [isAuthenticated, loading]);
-
-  const { data: enrollments, isLoading: loadingEnrollments } = trpc.enrollments.myCourses.useQuery(
-    undefined,
-    { enabled: isAuthenticated }
-  );
-  const { data: subscription } = trpc.subscriptions.mySubscription.useQuery(
-    undefined,
-    { enabled: isAuthenticated }
-  );
-
-  if (loading || !isAuthenticated) return null;
-
-  const hasSubscription = subscription?.subscription?.status === "active";
+  const completedCourses = enrollments?.filter(e => e.progress === "100") || [];
+  const inProgressCourses = enrollments?.filter(e => e.progress !== "100") || [];
 
   return (
-    <div className="min-h-screen">
-      <Navbar />
-      <div className="pt-24 pb-16">
-        <div className="container max-w-5xl mx-auto">
-          {/* Header */}
-          <div className="mb-10">
-            <h1 className="font-serif text-4xl font-medium text-foreground mb-2">Minha Área</h1>
-            <p className="text-muted-foreground tracking-wide">Continue de onde parou</p>
-          </div>
+    <div className="min-h-screen bg-white">
+      {/* Navigation */}
+      <nav className="border-b border-black flex items-center justify-between px-8 py-6">
+        <Link href="/">
+          <div className="text-2xl font-bold cursor-pointer">Design Academy</div>
+        </Link>
+        <div className="flex gap-4 items-center">
+          <span className="text-sm">{user?.name}</span>
+          <Button variant="outline" onClick={logout}>
+            Sair
+          </Button>
+        </div>
+      </nav>
 
-          {/* Subscription status */}
-          {!hasSubscription && (
-            <Card className="border-amber-200/50 dark:border-amber-800/30 bg-amber-50/50 dark:bg-amber-950/10 mb-8">
-              <CardContent className="p-4 flex items-center justify-between gap-4">
-                <div className="flex items-center gap-3">
-                  <AlertCircle className="w-5 h-5 text-amber-500 shrink-0" />
-                  <div>
-                    <p className="text-sm font-medium text-foreground">Sem assinatura ativa</p>
-                    <p className="text-xs text-muted-foreground">Assine um plano para acessar todos os cursos</p>
-                  </div>
-                </div>
-                <Link href="/assinatura">
-                  <Button size="sm" className="rounded-full shrink-0">Ver planos</Button>
-                </Link>
-              </CardContent>
-            </Card>
-          )}
+      <div className="px-8 py-12">
+        {/* Header */}
+        <div className="mb-12">
+          <h1 className="text-4xl font-bold mb-2">Bem-vindo, {user?.name}!</h1>
+          <p className="text-gray-600">Acompanhe seu progresso nos cursos</p>
+        </div>
 
-          {hasSubscription && (
-            <Card className="border-emerald-200/50 dark:border-emerald-800/30 bg-emerald-50/50 dark:bg-emerald-950/10 mb-8">
-              <CardContent className="p-4 flex items-center gap-3">
-                <Sparkles className="w-5 h-5 text-emerald-500 shrink-0" />
+        {/* Stats */}
+        <div className="grid grid-cols-4 gap-6 mb-12 border-b border-black pb-12">
+          <Card className="border-black">
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-foreground">
-                    Plano {subscription?.plan?.name} ativo
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    Válido até {subscription?.subscription?.endDate
-                      ? new Date(subscription.subscription.endDate).toLocaleDateString("pt-BR")
-                      : "—"}
-                  </p>
+                  <div className="text-3xl font-bold">{enrollments?.length || 0}</div>
+                  <div className="text-sm text-gray-600">Cursos Matriculado</div>
                 </div>
-              </CardContent>
-            </Card>
-          )}
+                <BookOpen className="w-8 h-8 text-red-600" />
+              </div>
+            </CardContent>
+          </Card>
 
-          {/* Enrolled courses */}
-          <h2 className="font-serif text-2xl font-medium text-foreground mb-6">Meus cursos</h2>
+          <Card className="border-black">
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-3xl font-bold">{inProgressCourses.length}</div>
+                  <div className="text-sm text-gray-600">Em Progresso</div>
+                </div>
+                <Clock className="w-8 h-8 text-blue-600" />
+              </div>
+            </CardContent>
+          </Card>
 
-          {loadingEnrollments ? (
-            <div className="grid md:grid-cols-2 gap-4">
-              {[...Array(4)].map((_, i) => (
-                <Card key={i} className="animate-pulse border-border/50">
-                  <CardContent className="p-4 flex gap-4">
-                    <div className="w-20 h-16 bg-muted rounded-lg shrink-0" />
-                    <div className="flex-1 space-y-2">
-                      <div className="h-4 bg-muted rounded w-3/4" />
-                      <div className="h-3 bg-muted rounded w-1/2" />
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          ) : !enrollments || enrollments.length === 0 ? (
-            <div className="text-center py-16 border border-dashed border-border/50 rounded-xl">
-              <BookOpen className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
-              <p className="text-muted-foreground mb-4">Você ainda não está matriculado em nenhum curso</p>
-              <Link href="/cursos">
-                <Button variant="outline" className="rounded-full">Explorar cursos</Button>
-              </Link>
-            </div>
-          ) : (
-            <div className="grid md:grid-cols-2 gap-4">
-              {enrollments.map(({ enrollment, course }) => (
-                <Link key={enrollment.id} href={`/cursos/${course.slug}`}>
-                  <Card className="group border-border/50 shadow-card hover:shadow-soft transition-all duration-300 cursor-pointer">
-                    <CardContent className="p-4 flex gap-4">
-                      <div className="w-20 h-16 rounded-lg overflow-hidden bg-gradient-to-br from-primary/10 to-secondary/20 shrink-0">
-                        {course.thumbnailUrl ? (
-                          <img src={course.thumbnailUrl} alt={course.title} className="w-full h-full object-cover" />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center">
-                            <BookOpen className="w-6 h-6 text-primary/30" />
-                          </div>
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h3 className="text-sm font-medium text-foreground group-hover:text-primary transition-colors line-clamp-1 mb-1">
-                          {course.title}
-                        </h3>
-                        <div className="flex items-center gap-3 text-xs text-muted-foreground mb-2">
-                          {course.totalLessons ? (
-                            <span className="flex items-center gap-1">
-                              <BookOpen className="w-3 h-3" /> {course.totalLessons} aulas
-                            </span>
-                          ) : null}
+          <Card className="border-black">
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-3xl font-bold">{completedCourses.length}</div>
+                  <div className="text-sm text-gray-600">Concluídos</div>
+                </div>
+                <Award className="w-8 h-8 text-green-600" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-black">
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-3xl font-bold">
+                    {enrollments && enrollments.length > 0
+                      ? Math.round(
+                          enrollments.reduce((sum, e) => sum + parseFloat(e.progress as any), 0) /
+                            enrollments.length
+                        )
+                      : 0}
+                    %
+                  </div>
+                  <div className="text-sm text-gray-600">Progresso Médio</div>
+                </div>
+                <div className="text-2xl">📊</div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Courses Sections */}
+        <div className="grid grid-cols-2 gap-12">
+          {/* In Progress */}
+          <div>
+            <h2 className="text-2xl font-bold mb-4">Cursos em Progresso</h2>
+            <div className="h-1 w-12 bg-red-600 mb-6"></div>
+
+            {isLoading ? (
+              <div>Carregando...</div>
+            ) : inProgressCourses.length > 0 ? (
+              <div className="space-y-4">
+                {inProgressCourses.map((enrollment) => (
+                  <Card key={enrollment.id} className="border-black">
+                    <CardContent className="pt-6">
+                      <div className="mb-3">
+                        <div className="font-semibold mb-2">Curso #{enrollment.courseId}</div>
+                        <div className="w-full bg-gray-200 h-2 rounded">
+                          <div
+                            className="bg-red-600 h-2 rounded"
+                            style={{ width: `${enrollment.progress}%` }}
+                          ></div>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <Progress value={enrollment.progress ?? 0} className="h-1.5 flex-1" />
-                          <span className="text-xs text-muted-foreground shrink-0">
-                            {enrollment.progress ?? 0}%
-                          </span>
-                        </div>
+                        <div className="text-xs text-gray-600 mt-1">{enrollment.progress}% completo</div>
                       </div>
+                      <Link href={`/student/course/${enrollment.courseId}`}>
+                        <Button className="w-full bg-red-600 hover:bg-red-700 text-white">
+                          Continuar
+                        </Button>
+                      </Link>
                     </CardContent>
                   </Card>
-                </Link>
-              ))}
-            </div>
-          )}
+                ))}
+              </div>
+            ) : (
+              <Card className="border-black">
+                <CardContent className="pt-6 text-center text-gray-600">
+                  <p>Você ainda não iniciou nenhum curso.</p>
+                  <Link href="/courses">
+                    <Button className="mt-4 bg-red-600 hover:bg-red-700 text-white">
+                      Explorar Cursos
+                    </Button>
+                  </Link>
+                </CardContent>
+              </Card>
+            )}
+          </div>
 
-          {/* Quick links */}
-          <div className="mt-10 grid grid-cols-2 md:grid-cols-4 gap-3">
-            {[
-              { href: "/cursos", icon: BookOpen, label: "Catálogo" },
-              { href: "/assinatura", icon: Sparkles, label: "Assinatura" },
-              { href: "/perfil", icon: Clock, label: "Perfil" },
-            ].map((item) => (
-              <Link key={item.href} href={item.href}>
-                <Card className="border-border/50 hover:border-primary/30 hover:shadow-card transition-all cursor-pointer">
-                  <CardContent className="p-4 flex flex-col items-center gap-2 text-center">
-                    <item.icon className="w-5 h-5 text-primary" />
-                    <span className="text-xs text-muted-foreground">{item.label}</span>
-                  </CardContent>
-                </Card>
-              </Link>
-            ))}
+          {/* Completed */}
+          <div>
+            <h2 className="text-2xl font-bold mb-4">Cursos Concluídos</h2>
+            <div className="h-1 w-12 bg-green-600 mb-6"></div>
+
+            {completedCourses.length > 0 ? (
+              <div className="space-y-4">
+                {completedCourses.map((enrollment) => (
+                  <Card key={enrollment.id} className="border-black">
+                    <CardContent className="pt-6">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="font-semibold">Curso #{enrollment.courseId}</div>
+                        <Award className="w-5 h-5 text-green-600" />
+                      </div>
+                      {enrollment.certificateUrl && (
+                        <a href={enrollment.certificateUrl} target="_blank" rel="noopener noreferrer">
+                          <Button className="w-full bg-green-600 hover:bg-green-700 text-white">
+                            Baixar Certificado
+                          </Button>
+                        </a>
+                      )}
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <Card className="border-black">
+                <CardContent className="pt-6 text-center text-gray-600">
+                  <p>Você ainda não concluiu nenhum curso.</p>
+                </CardContent>
+              </Card>
+            )}
           </div>
         </div>
       </div>

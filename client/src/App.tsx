@@ -5,54 +5,44 @@ import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
-import AuthPage from "./pages/AuthPage";
-import CourseCatalog from "./pages/CourseCatalog";
+import Courses from "./pages/Courses";
 import CourseDetail from "./pages/CourseDetail";
-import LessonPlayer from "./pages/LessonPlayer";
 import StudentDashboard from "./pages/StudentDashboard";
-import StudentProfile from "./pages/StudentProfile";
-import SubscriptionPage from "./pages/SubscriptionPage";
-import AdminDashboard from "./pages/admin/AdminDashboard";
-import AdminCourses from "./pages/admin/AdminCourses";
-import AdminCourseEdit from "./pages/admin/AdminCourseEdit";
-import AdminUsers from "./pages/admin/AdminUsers";
-import AdminPayments from "./pages/admin/AdminPayments";
-import AdminPlans from "./pages/admin/AdminPlans";
+import LessonPlayer from "./pages/LessonPlayer";
+import InstructorDashboard from "./pages/InstructorDashboard";
+import AdminDashboard from "./pages/AdminDashboard";
 
 function Router() {
+  // make sure to consider if you need authentication for certain routes
   return (
     <Switch>
-      {/* Public */}
-      <Route path="/" component={Home} />
-      <Route path="/auth" component={AuthPage} />
-      <Route path="/cursos" component={CourseCatalog} />
-      <Route path="/cursos/:slug" component={CourseDetail} />
-
-      {/* Student */}
-      <Route path="/minha-area" component={StudentDashboard} />
-      <Route path="/perfil" component={StudentProfile} />
-      <Route path="/assinatura" component={SubscriptionPage} />
-      <Route path="/aula/:id" component={LessonPlayer} />
-
-      {/* Admin */}
-      <Route path="/admin" component={AdminDashboard} />
-      <Route path="/admin/cursos" component={AdminCourses} />
-      <Route path="/admin/cursos/novo" component={AdminCourseEdit} />
-      <Route path="/admin/cursos/:id" component={AdminCourseEdit} />
-      <Route path="/admin/usuarios" component={AdminUsers} />
-      <Route path="/admin/pagamentos" component={AdminPayments} />
-      <Route path="/admin/planos" component={AdminPlans} />
-
-      <Route path="/404" component={NotFound} />
+      <Route path={"/"} component={Home} />
+      <Route path={"/courses"} component={Courses} />
+      <Route path={"/courses/:id"} component={CourseDetail} />
+      <Route path={"/student/dashboard"} component={StudentDashboard} />
+      <Route path={"/student/course/:courseId/lesson/:lessonId"} component={LessonPlayer} />
+      <Route path={"/instructor/dashboard"} component={InstructorDashboard} />
+      <Route path={"/admin/dashboard"} component={AdminDashboard} />
+      <Route path={"/dashboard"} component={StudentDashboard} />
+      <Route path={"/404"} component={NotFound} />
+      {/* Final fallback route */}
       <Route component={NotFound} />
     </Switch>
   );
 }
 
+// NOTE: About Theme
+// - First choose a default theme according to your design style (dark or light bg), than change color palette in index.css
+//   to keep consistent foreground/background color across components
+// - If you want to make theme switchable, pass `switchable` ThemeProvider and use `useTheme` hook
+
 function App() {
   return (
     <ErrorBoundary>
-      <ThemeProvider defaultTheme="light" switchable>
+      <ThemeProvider
+        defaultTheme="light"
+        // switchable
+      >
         <TooltipProvider>
           <Toaster />
           <Router />

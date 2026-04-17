@@ -1,191 +1,188 @@
-import { useRoute, useLocation } from "wouter";
-import { trpc } from "@/lib/trpc";
-import Navbar from "@/components/Navbar";
+import { useParams } from "wouter";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
-import { Clock, BookOpen, Lock, Play, CheckCircle2, ArrowLeft } from "lucide-react";
+import { Star, Users, Clock, Award } from "lucide-react";
 import { Link } from "wouter";
 
-const levelLabels: Record<string, { label: string; className: string }> = {
-  beginner: { label: "Iniciante", className: "badge-beginner" },
-  intermediate: { label: "Intermediário", className: "badge-intermediate" },
-  advanced: { label: "Avançado", className: "badge-advanced" },
-};
-
 export default function CourseDetail() {
-  const [, params] = useRoute("/cursos/:slug");
-  const [, navigate] = useLocation();
-  const { isAuthenticated } = useAuth();
-  const slug = params?.slug ?? "";
+  const { id } = useParams<{ id: string }>();
+  const courseId = parseInt(id || "0");
+  
+  const { user, isAuthenticated } = useAuth();
+  const { data: course, isLoading } = trpc.courses.getById.useQuery(courseId);
+  const { data: modules } = trpc.modules.getByCourse.useQuery(courseId);
+  const enrollMutation = trpc.enrollments.enroll.useMutation();
 
-  const { data, isLoading } = trpc.courses.bySlug.useQuery({ slug }, { enabled: !!slug });
-  const { data: accessData } = trpc.enrollments.checkAccess.useQuery(
-    { courseId: data?.course.id ?? 0 },
-    { enabled: !!data?.course.id && isAuthenticated }
-  );
+  const handleEnroll = async () => {
+    if (!isAuthenticated) {
+      alert("Você precisa estar logado para se matricular");
+      return;
+    }
+    try {
+      await enrollMutation.mutateAsync(courseId);
+      alert("Matrícula realizada com sucesso!");
+    } catch (error) {
+      alert("Erro ao se matricular: " + (error as Error).message);
+    }
+  };
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen">
-        <Navbar />
-        <div className="pt-24 container max-w-4xl mx-auto">
-          <div className="animate-pulse space-y-4">
-            <div className="h-8 bg-muted rounded w-2/3" />
-            <div className="h-4 bg-muted rounded w-1/2" />
-            <div className="aspect-video bg-muted rounded-xl" />
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (!data) {
-    return (
-      <div className="min-h-screen">
-        <Navbar />
-        <div className="pt-24 container text-center">
-          <p className="text-muted-foreground">Curso não encontrado</p>
-          <Link href="/cursos"><Button className="mt-4">Ver catálogo</Button></Link>
-        </div>
-      </div>
-    );
-  }
-
-  const { course, lessons } = data;
-  const lvl = levelLabels[course.level] ?? { label: course.level, className: "" };
-  const hasAccess = accessData?.hasAccess ?? false;
+  if (isLoading) return <div className="p-8">Carregando...</div>;
+  if (!course) return <div className="p-8">Curso não encontrado</div>;
 
   return (
-    <div className="min-h-screen">
-      <Navbar />
-      <div className="pt-24 pb-16">
-        <div className="container max-w-4xl mx-auto">
-          <Link href="/cursos" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-8 transition-colors">
-            <ArrowLeft className="w-3.5 h-3.5" />
-            Voltar ao catálogo
+    <div className="min-h-screen bg-white">
+      {/* Navigation */}
+      <nav className="border-b border-black flex items-center justify-between px-8 py-6">
+        <Link href="/">
+          <div className="text-2xl font-bold cursor-pointer">Design Academy</div>
+        </Link>
+        <div className="flex gap-4">
+          <Link href="/courses">
+            <Button variant="outline">Voltar</Button>
           </Link>
+        </div>
+      </nav>
 
-          <div className="grid md:grid-cols-3 gap-8">
-            {/* Main content */}
-            <div className="md:col-span-2">
-              {/* Thumbnail */}
-              <div className="aspect-video rounded-xl overflow-hidden bg-gradient-to-br from-primary/10 to-secondary/30 mb-6">
-                {course.thumbnailUrl ? (
-                  <img src={course.thumbnailUrl} alt={course.title} className="w-full h-full object-cover" />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <BookOpen className="w-16 h-16 text-primary/20" />
-                  </div>
-                )}
-              </div>
-
-              <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${lvl.className} inline-block mb-4`}>
-                {lvl.label}
-              </span>
-
-              <h1 className="font-serif text-3xl md:text-4xl font-medium text-foreground mb-4">
-                {course.title}
-              </h1>
-
-              {course.description && (
-                <p className="text-muted-foreground leading-relaxed mb-6 tracking-wide">
-                  {course.description}
-                </p>
-              )}
-
-              <div className="flex items-center gap-6 text-sm text-muted-foreground mb-8">
-                {course.totalLessons ? (
-                  <span className="flex items-center gap-1.5">
-                    <BookOpen className="w-4 h-4" /> {course.totalLessons} aulas
-                  </span>
-                ) : null}
-                {course.totalDuration ? (
-                  <span className="flex items-center gap-1.5">
-                    <Clock className="w-4 h-4" /> {course.totalDuration} min
-                  </span>
-                ) : null}
-              </div>
-
-              {/* Lessons list */}
-              <h2 className="font-serif text-xl font-medium text-foreground mb-4">Conteúdo do curso</h2>
-              <div className="space-y-2">
-                {lessons.map((lesson, i) => {
-                  const canAccess = lesson.isFree || hasAccess;
-                  return (
-                    <div
-                      key={lesson.id}
-                      onClick={() => canAccess && navigate(`/aula/${lesson.id}`)}
-                      className={`flex items-center gap-3 p-3 rounded-lg border border-border/40 transition-all ${
-                        canAccess ? "hover:border-primary/30 hover:bg-primary/5 cursor-pointer" : "opacity-60"
-                      }`}
-                    >
-                      <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 ${
-                        canAccess ? "bg-primary/10" : "bg-muted"
-                      }`}>
-                        {canAccess ? (
-                          <Play className="w-3 h-3 text-primary" />
-                        ) : (
-                          <Lock className="w-3 h-3 text-muted-foreground" />
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm text-foreground truncate">{lesson.title}</p>
-                        {lesson.duration ? (
-                          <p className="text-xs text-muted-foreground">{lesson.duration} min</p>
-                        ) : null}
-                      </div>
-                      {lesson.isFree && (
-                        <span className="text-xs text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/30 px-2 py-0.5 rounded-full">
-                          Grátis
-                        </span>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
+      {/* Hero Section */}
+      <section className="px-8 py-12 grid grid-cols-2 gap-12 border-b border-black">
+        <div className="bg-gray-200 h-96"></div>
+        <div className="flex flex-col justify-center">
+          <div className="mb-4">
+            <span className="text-sm font-semibold text-gray-600">{course.category}</span>
+          </div>
+          <h1 className="text-4xl font-bold mb-4">{course.title}</h1>
+          
+          <div className="flex items-center gap-4 mb-6">
+            <div className="flex items-center gap-1">
+              <Star className="w-5 h-5 fill-yellow-400" />
+              <span className="font-semibold">{course.rating}</span>
             </div>
+            <span className="text-gray-600">({course.totalStudents} alunos)</span>
+          </div>
 
-            {/* Sidebar */}
-            <div className="md:col-span-1">
-              <Card className="border-border/50 shadow-soft gradient-card sticky top-24">
-                <CardContent className="p-6">
-                  {hasAccess ? (
-                    <>
-                      <div className="flex items-center gap-2 mb-4">
-                        <CheckCircle2 className="w-5 h-5 text-emerald-500" />
-                        <span className="text-sm font-medium text-foreground">Você tem acesso</span>
-                      </div>
-                      {lessons[0] && (
-                        <Link href={`/aula/${lessons[0].id}`}>
-                          <Button className="w-full rounded-full gap-2">
-                            <Play className="w-4 h-4" /> Iniciar curso
-                          </Button>
-                        </Link>
-                      )}
-                    </>
-                  ) : (
-                    <>
-                      <div className="flex items-center gap-2 mb-2">
-                        <Lock className="w-4 h-4 text-muted-foreground" />
-                        <span className="text-sm text-muted-foreground">Requer assinatura</span>
-                      </div>
-                      <p className="text-xs text-muted-foreground mb-4 leading-relaxed">
-                        Assine um plano para ter acesso ilimitado a este e todos os outros cursos.
-                      </p>
-                      <Link href={isAuthenticated ? "/assinatura" : "/auth?mode=register"}>
-                        <Button className="w-full rounded-full">
-                          {isAuthenticated ? "Ver planos" : "Cadastrar e assinar"}
-                        </Button>
-                      </Link>
-                    </>
-                  )}
-                </CardContent>
-              </Card>
+          <p className="text-lg text-gray-700 mb-8">{course.description}</p>
+
+          <div className="space-y-4 mb-8">
+            <div className="flex items-center gap-3">
+              <Clock className="w-5 h-5" />
+              <span>Acesso vitalício</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <Award className="w-5 h-5" />
+              <span>Certificado de conclusão</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <Users className="w-5 h-5" />
+              <span>{course.totalStudents} alunos matriculados</span>
             </div>
           </div>
+
+          <div className="flex items-center justify-between">
+            <div className="text-4xl font-bold">
+              {course.price === "0" ? "Grátis" : `R$ ${course.price}`}
+            </div>
+            <Button 
+              size="lg" 
+              className="bg-red-600 hover:bg-red-700 text-white"
+              onClick={handleEnroll}
+              disabled={enrollMutation.isPending}
+            >
+              {enrollMutation.isPending ? "Matriculando..." : "Matricular-se"}
+            </Button>
+          </div>
         </div>
-      </div>
+      </section>
+
+      {/* Curriculum Section */}
+      <section className="px-8 py-12 border-b border-black">
+        <h2 className="text-3xl font-bold mb-4">Currículo</h2>
+        <div className="h-1 w-16 bg-red-600 mb-8"></div>
+
+        <div className="space-y-4">
+          {modules && modules.length > 0 ? (
+            modules.map((module, idx) => (
+              <Card key={module.id} className="border-black">
+                <CardHeader>
+                  <CardTitle className="text-lg">
+                    Módulo {idx + 1}: {module.title}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-600">{module.description}</p>
+                </CardContent>
+              </Card>
+            ))
+          ) : (
+            <p className="text-gray-600">Nenhum módulo disponível ainda.</p>
+          )}
+        </div>
+      </section>
+
+      {/* Instructor Section */}
+      <section className="px-8 py-12 border-b border-black">
+        <h2 className="text-3xl font-bold mb-4">Sobre o Instrutor</h2>
+        <div className="h-1 w-16 bg-red-600 mb-8"></div>
+
+        <Card className="border-black">
+          <CardContent className="pt-6 flex gap-6">
+            <div className="w-24 h-24 bg-gray-200 rounded-full flex-shrink-0"></div>
+            <div>
+              <h3 className="text-xl font-bold mb-2">Nome do Instrutor</h3>
+              <p className="text-gray-600 mb-4">
+                Especialista em design com mais de 10 anos de experiência em UI/UX, design gráfico e motion design.
+              </p>
+              <div className="flex gap-8">
+                <div>
+                  <div className="font-bold">1000+</div>
+                  <div className="text-sm text-gray-600">Alunos</div>
+                </div>
+                <div>
+                  <div className="font-bold">15+</div>
+                  <div className="text-sm text-gray-600">Cursos</div>
+                </div>
+                <div>
+                  <div className="font-bold">4.9</div>
+                  <div className="text-sm text-gray-600">Avaliação</div>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </section>
+
+      {/* Reviews Section */}
+      <section className="px-8 py-12 border-b border-black">
+        <h2 className="text-3xl font-bold mb-4">Depoimentos de Alunos</h2>
+        <div className="h-1 w-16 bg-red-600 mb-8"></div>
+
+        <div className="grid grid-cols-2 gap-8">
+          {[1, 2, 3, 4].map((i) => (
+            <Card key={i} className="border-black">
+              <CardContent className="pt-6">
+                <div className="flex items-center gap-1 mb-3">
+                  {[...Array(5)].map((_, j) => (
+                    <Star key={j} className="w-4 h-4 fill-yellow-400" />
+                  ))}
+                </div>
+                <p className="text-gray-700 mb-4">
+                  "Excelente curso! Aprendi muito sobre design e agora consigo aplicar na minha carreira."
+                </p>
+                <div className="font-semibold">João Silva</div>
+                <div className="text-sm text-gray-600">Designer UX</div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="border-t border-black px-8 py-12 bg-gray-50">
+        <div className="text-center text-sm text-gray-600">
+          <p>&copy; 2024 Design Academy. Todos os direitos reservados.</p>
+        </div>
+      </footer>
     </div>
   );
 }

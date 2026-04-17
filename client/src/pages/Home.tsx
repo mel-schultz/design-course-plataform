@@ -1,301 +1,195 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
-import Navbar from "@/components/Navbar";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { getLoginUrl } from "@/const";
 import { trpc } from "@/lib/trpc";
+import { Star, BookOpen, Users, Award } from "lucide-react";
 import { Link } from "wouter";
-import { ArrowRight, Palette, Layers, Pen, Star, CheckCircle2, Sparkles } from "lucide-react";
-
-const levelLabels: Record<string, { label: string; className: string }> = {
-  beginner: { label: "Iniciante", className: "badge-beginner" },
-  intermediate: { label: "Intermediário", className: "badge-intermediate" },
-  advanced: { label: "Avançado", className: "badge-advanced" },
-};
 
 export default function Home() {
-  const { isAuthenticated } = useAuth();
-  const { data: featuredData } = trpc.courses.featured.useQuery();
-  const { data: plans } = trpc.subscriptions.plans.useQuery();
+  const { user, isAuthenticated } = useAuth();
+  const { data: courses, isLoading } = trpc.courses.list.useQuery({});
 
-  const featured = featuredData?.items ?? [];
+  const featuredCourses = courses?.slice(0, 3) || [];
 
   return (
-    <div className="min-h-screen">
-      <Navbar />
+    <div className="min-h-screen bg-white">
+      {/* Navigation */}
+      <nav className="border-b border-black flex items-center justify-between px-8 py-6">
+        <div className="text-2xl font-bold">Design Academy</div>
+        <div className="flex gap-4">
+          {isAuthenticated ? (
+            <>
+              <span className="text-sm">{user?.name}</span>
+              <Link href="/dashboard">
+                <Button variant="outline">Dashboard</Button>
+              </Link>
+            </>
+          ) : (
+            <Button onClick={() => window.location.href = getLoginUrl()}>
+              Entrar
+            </Button>
+          )}
+        </div>
+      </nav>
 
       {/* Hero Section */}
-      <section className="relative pt-32 pb-24 overflow-hidden">
-        {/* Background gradient blobs */}
-        <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          <div className="absolute -top-40 -left-40 w-[600px] h-[600px] rounded-full opacity-30"
-            style={{ background: "radial-gradient(circle, oklch(0.88 0.06 285) 0%, transparent 70%)" }} />
-          <div className="absolute top-20 right-0 w-[400px] h-[400px] rounded-full opacity-25"
-            style={{ background: "radial-gradient(circle, oklch(0.90 0.05 10) 0%, transparent 70%)" }} />
-          <div className="absolute bottom-0 left-1/2 w-[500px] h-[300px] rounded-full opacity-20"
-            style={{ background: "radial-gradient(circle, oklch(0.88 0.06 165) 0%, transparent 70%)" }} />
-        </div>
-
-        {/* Decorative vertical lines */}
-        <div className="absolute left-12 top-32 bottom-32 w-px opacity-20"
-          style={{ background: "linear-gradient(to bottom, transparent, var(--primary), transparent)" }} />
-        <div className="absolute right-12 top-32 bottom-32 w-px opacity-20"
-          style={{ background: "linear-gradient(to bottom, transparent, var(--primary), transparent)" }} />
-
-        <div className="container relative text-center max-w-4xl mx-auto">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-primary/20 bg-primary/5 mb-8">
-            <Sparkles className="w-3.5 h-3.5 text-primary" />
-            <span className="text-xs tracking-widest uppercase text-primary font-medium">Plataforma de Design</span>
-          </div>
-
-          <h1 className="font-serif text-5xl md:text-7xl font-medium leading-tight mb-6 text-foreground">
-            Eleve sua arte
-            <br />
-            <em className="text-gradient not-italic">ao próximo nível</em>
+      <section className="px-8 py-24 grid grid-cols-2 gap-16 items-center border-b border-black">
+        <div>
+          <h1 className="text-6xl font-bold leading-tight mb-6">
+            Aprenda Design com os Melhores
           </h1>
-
-          <p className="text-muted-foreground text-lg md:text-xl leading-relaxed mb-10 max-w-2xl mx-auto font-light tracking-wide">
-            Cursos de design cuidadosamente elaborados para iniciantes, intermediários e avançados.
-            Aprenda com elegância, no seu ritmo.
+          <p className="text-xl text-gray-700 mb-8 leading-relaxed">
+            Plataforma educacional de excelência. Cursos estruturados, instrutores qualificados e comunidade engajada.
           </p>
-
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+          <div className="flex gap-4">
             {isAuthenticated ? (
-              <Link href="/minha-area">
-                <Button size="lg" className="rounded-full px-8 gap-2 shadow-soft">
-                  Ir para Minha Área <ArrowRight className="w-4 h-4" />
+              <Link href="/courses">
+                <Button size="lg" className="bg-red-600 hover:bg-red-700 text-white">
+                  Explorar Cursos
                 </Button>
               </Link>
             ) : (
-              <>
-                <Link href="/auth?mode=register">
-                  <Button size="lg" className="rounded-full px-8 gap-2 shadow-soft">
-                    Começar agora <ArrowRight className="w-4 h-4" />
-                  </Button>
-                </Link>
-                <Link href="/cursos">
-                  <Button variant="outline" size="lg" className="rounded-full px-8 bg-background/60">
-                    Ver cursos
-                  </Button>
-                </Link>
-              </>
+              <Button size="lg" className="bg-red-600 hover:bg-red-700 text-white" onClick={() => window.location.href = getLoginUrl()}>
+                Começar Agora
+              </Button>
             )}
           </div>
-
-          {/* Stats */}
-          <div className="mt-16 grid grid-cols-3 gap-8 max-w-md mx-auto">
-            {[
-              { value: "50+", label: "Cursos" },
-              { value: "3", label: "Níveis" },
-              { value: "∞", label: "Acesso" },
-            ].map((stat) => (
-              <div key={stat.label} className="text-center">
-                <div className="font-serif text-3xl font-semibold text-foreground">{stat.value}</div>
-                <div className="text-xs text-muted-foreground tracking-widest uppercase mt-1">{stat.label}</div>
-              </div>
-            ))}
+        </div>
+        <div className="bg-red-600 h-96 flex items-center justify-center text-white text-center">
+          <div className="space-y-4">
+            <div className="text-5xl font-bold">1000+</div>
+            <div className="text-xl">Alunos Satisfeitos</div>
           </div>
         </div>
       </section>
 
-      {/* Features */}
-      <section className="py-20 relative">
-        <div className="container max-w-5xl mx-auto">
-          <div className="text-center mb-14">
-            <h2 className="font-serif text-3xl md:text-4xl font-medium text-foreground mb-4">
-              Uma experiência completa
-            </h2>
-            <p className="text-muted-foreground text-base tracking-wide max-w-xl mx-auto">
-              Tudo que você precisa para evoluir no design, em um só lugar.
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-6">
-            {[
-              {
-                icon: Palette,
-                title: "Design Gráfico",
-                desc: "Fundamentos de composição, cor e tipografia para criar peças visuais impactantes.",
-                color: "text-primary",
-                bg: "bg-primary/8",
-              },
-              {
-                icon: Layers,
-                title: "UI & UX Design",
-                desc: "Interfaces digitais centradas no usuário, do wireframe ao protótipo final.",
-                color: "text-rose-500",
-                bg: "bg-rose-50 dark:bg-rose-950/20",
-              },
-              {
-                icon: Pen,
-                title: "Ilustração Digital",
-                desc: "Técnicas de ilustração vetorial e digital para dar vida às suas ideias.",
-                color: "text-emerald-600",
-                bg: "bg-emerald-50 dark:bg-emerald-950/20",
-              },
-            ].map((feature) => (
-              <Card key={feature.title} className="border-border/50 shadow-card hover:shadow-soft transition-shadow duration-300 gradient-card corner-bracket">
-                <CardContent className="p-6">
-                  <div className={`w-10 h-10 rounded-xl ${feature.bg} flex items-center justify-center mb-4`}>
-                    <feature.icon className={`w-5 h-5 ${feature.color}`} />
-                  </div>
-                  <h3 className="font-serif text-lg font-medium text-foreground mb-2">{feature.title}</h3>
-                  <p className="text-sm text-muted-foreground leading-relaxed">{feature.desc}</p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+      {/* Stats Section */}
+      <section className="px-8 py-16 grid grid-cols-4 gap-8 border-b border-black">
+        <div className="text-center">
+          <BookOpen className="w-12 h-12 mx-auto mb-4" />
+          <div className="text-3xl font-bold">50+</div>
+          <div className="text-gray-600">Cursos</div>
+        </div>
+        <div className="text-center">
+          <Users className="w-12 h-12 mx-auto mb-4" />
+          <div className="text-3xl font-bold">100+</div>
+          <div className="text-gray-600">Instrutores</div>
+        </div>
+        <div className="text-center">
+          <Award className="w-12 h-12 mx-auto mb-4" />
+          <div className="text-3xl font-bold">10K+</div>
+          <div className="text-gray-600">Alunos</div>
+        </div>
+        <div className="text-center">
+          <Star className="w-12 h-12 mx-auto mb-4" />
+          <div className="text-3xl font-bold">4.9</div>
+          <div className="text-gray-600">Avaliação</div>
         </div>
       </section>
 
       {/* Featured Courses */}
-      {featured.length > 0 && (
-        <section className="py-20">
-          <div className="container max-w-5xl mx-auto">
-            <div className="flex items-end justify-between mb-12">
-              <div>
-                <h2 className="font-serif text-3xl md:text-4xl font-medium text-foreground mb-2">
-                  Cursos em destaque
-                </h2>
-                <p className="text-muted-foreground text-sm tracking-wide">Selecionados pelos nossos instrutores</p>
-              </div>
-              <Link href="/cursos">
-                <Button variant="ghost" size="sm" className="gap-1 text-primary">
-                  Ver todos <ArrowRight className="w-3.5 h-3.5" />
-                </Button>
+      <section className="px-8 py-24 border-b border-black">
+        <h2 className="text-4xl font-bold mb-4">Cursos em Destaque</h2>
+        <div className="h-1 w-16 bg-red-600 mb-12"></div>
+
+        {isLoading ? (
+          <div>Carregando...</div>
+        ) : (
+          <div className="grid grid-cols-3 gap-8">
+            {featuredCourses.map((course) => (
+              <Link key={course.id} href={`/courses/${course.id}`}>
+                <Card className="border-black cursor-pointer hover:shadow-lg transition-shadow">
+                  <CardHeader className="pb-3">
+                    <div className="h-40 bg-gray-200 mb-4"></div>
+                    <CardTitle className="text-lg">{course.title}</CardTitle>
+                    <CardDescription>{course.category}</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1">
+                        <Star className="w-4 h-4 fill-yellow-400" />
+                        <span className="text-sm font-semibold">{course.rating}</span>
+                      </div>
+                      <div className="text-lg font-bold">
+                        {course.price === "0" ? "Grátis" : `R$ ${course.price}`}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
               </Link>
-            </div>
-
-            <div className="grid md:grid-cols-3 gap-6">
-              {featured.map((course) => {
-                const lvl = levelLabels[course.level] ?? { label: course.level, className: "" };
-                return (
-                  <Link key={course.id} href={`/cursos/${course.slug}`}>
-                    <Card className="group border-border/50 shadow-card hover:shadow-soft transition-all duration-300 cursor-pointer overflow-hidden">
-                      <div className="aspect-video bg-gradient-to-br from-primary/10 to-secondary/30 relative overflow-hidden">
-                        {course.thumbnailUrl ? (
-                          <img src={course.thumbnailUrl} alt={course.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center">
-                            <Palette className="w-10 h-10 text-primary/30" />
-                          </div>
-                        )}
-                        <div className="absolute top-3 left-3">
-                          <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${lvl.className}`}>
-                            {lvl.label}
-                          </span>
-                        </div>
-                      </div>
-                      <CardContent className="p-4">
-                        <h3 className="font-serif text-base font-medium text-foreground mb-1 group-hover:text-primary transition-colors line-clamp-2">
-                          {course.title}
-                        </h3>
-                        {course.shortDescription && (
-                          <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
-                            {course.shortDescription}
-                          </p>
-                        )}
-                        <div className="flex items-center gap-3 mt-3 text-xs text-muted-foreground">
-                          {course.totalLessons ? <span>{course.totalLessons} aulas</span> : null}
-                          {course.totalDuration ? <span>{course.totalDuration} min</span> : null}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </Link>
-                );
-              })}
-            </div>
+            ))}
           </div>
-        </section>
-      )}
+        )}
+      </section>
 
-      {/* Pricing */}
-      {plans && plans.length > 0 && (
-        <section className="py-20">
-          <div className="container max-w-4xl mx-auto">
-            <div className="text-center mb-14">
-              <h2 className="font-serif text-3xl md:text-4xl font-medium text-foreground mb-4">
-                Planos de assinatura
-              </h2>
-              <p className="text-muted-foreground text-base tracking-wide">
-                Acesso ilimitado a todos os cursos
-              </p>
-            </div>
+      {/* Categories Section */}
+      <section className="px-8 py-24 border-b border-black">
+        <h2 className="text-4xl font-bold mb-4">Categorias</h2>
+        <div className="h-1 w-16 bg-red-600 mb-12"></div>
 
-            <div className="grid md:grid-cols-3 gap-6">
-              {plans.map((plan, i) => {
-                const isPopular = i === 1;
-                const features: string[] = plan.features ? JSON.parse(plan.features) : [];
-                return (
-                  <Card
-                    key={plan.id}
-                    className={`relative border-border/50 shadow-card overflow-hidden transition-all duration-300 hover:shadow-soft ${
-                      isPopular ? "border-primary/40 shadow-soft" : ""
-                    }`}
-                  >
-                    {isPopular && (
-                      <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-primary to-transparent" />
-                    )}
-                    <CardContent className="p-6">
-                      {isPopular && (
-                        <div className="flex items-center gap-1 mb-3">
-                          <Star className="w-3.5 h-3.5 text-primary fill-primary" />
-                          <span className="text-xs text-primary font-medium tracking-wide">Mais popular</span>
-                        </div>
-                      )}
-                      <h3 className="font-serif text-xl font-medium text-foreground mb-1">{plan.name}</h3>
-                      <p className="text-xs text-muted-foreground mb-4">{plan.description}</p>
-                      <div className="mb-6">
-                        <span className="font-serif text-3xl font-semibold text-foreground">
-                          R$ {Number(plan.price).toFixed(2).replace(".", ",")}
-                        </span>
-                        <span className="text-xs text-muted-foreground ml-1">
-                          /{plan.billingCycle === "monthly" ? "mês" : plan.billingCycle === "quarterly" ? "trimestre" : "ano"}
-                        </span>
-                      </div>
-                      <ul className="space-y-2 mb-6">
-                        {features.map((f) => (
-                          <li key={f} className="flex items-start gap-2 text-sm text-muted-foreground">
-                            <CheckCircle2 className="w-4 h-4 text-primary mt-0.5 shrink-0" />
-                            {f}
-                          </li>
-                        ))}
-                      </ul>
-                      <Link href={isAuthenticated ? "/assinatura" : "/auth?mode=register"}>
-                        <Button
-                          className={`w-full rounded-full ${isPopular ? "" : "variant-outline"}`}
-                          variant={isPopular ? "default" : "outline"}
-                        >
-                          Assinar agora
-                        </Button>
-                      </Link>
-                    </CardContent>
-                  </Card>
-                );
-              })}
+        <div className="grid grid-cols-4 gap-6">
+          {["UI/UX Design", "Graphic Design", "Web Design", "Motion Design"].map((category) => (
+            <div key={category} className="border border-black p-8 text-center hover:bg-red-600 hover:text-white transition-colors cursor-pointer">
+              <div className="text-lg font-semibold">{category}</div>
             </div>
-          </div>
-        </section>
-      )}
+          ))}
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="px-8 py-24 bg-black text-white text-center">
+        <h2 className="text-4xl font-bold mb-6">Pronto para começar?</h2>
+        <p className="text-xl mb-8 max-w-2xl mx-auto">
+          Junte-se a milhares de alunos que já transformaram suas carreiras com nossos cursos.
+        </p>
+        {isAuthenticated ? (
+          <Link href="/courses">
+            <Button size="lg" className="bg-red-600 hover:bg-red-700 text-white">
+              Explorar Cursos
+            </Button>
+          </Link>
+        ) : (
+          <Button size="lg" className="bg-red-600 hover:bg-red-700 text-white" onClick={() => window.location.href = getLoginUrl()}>
+            Cadastre-se Agora
+          </Button>
+        )}
+      </section>
 
       {/* Footer */}
-      <footer className="border-t border-border/50 py-12">
-        <div className="container max-w-5xl mx-auto">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded-md bg-primary/10 flex items-center justify-center">
-                <Palette className="w-3 h-3 text-primary" />
-              </div>
-              <span className="font-serif text-sm text-foreground">DesignHub</span>
-            </div>
-            <p className="text-xs text-muted-foreground tracking-wide">
-              © {new Date().getFullYear()} DesignHub. Todos os direitos reservados.
-            </p>
-            <div className="flex items-center gap-4 text-xs text-muted-foreground">
-              <Link href="/cursos" className="hover:text-foreground transition-colors">Cursos</Link>
-              <Link href="/auth" className="hover:text-foreground transition-colors">Entrar</Link>
-            </div>
+      <footer className="border-t border-black px-8 py-12 bg-gray-50">
+        <div className="grid grid-cols-4 gap-8 mb-8">
+          <div>
+            <h3 className="font-bold mb-4">Design Academy</h3>
+            <p className="text-sm text-gray-600">Plataforma educacional de excelência em design.</p>
           </div>
+          <div>
+            <h3 className="font-bold mb-4">Cursos</h3>
+            <ul className="space-y-2 text-sm text-gray-600">
+              <li>UI/UX Design</li>
+              <li>Graphic Design</li>
+              <li>Web Design</li>
+            </ul>
+          </div>
+          <div>
+            <h3 className="font-bold mb-4">Empresa</h3>
+            <ul className="space-y-2 text-sm text-gray-600">
+              <li>Sobre</li>
+              <li>Contato</li>
+              <li>Blog</li>
+            </ul>
+          </div>
+          <div>
+            <h3 className="font-bold mb-4">Legal</h3>
+            <ul className="space-y-2 text-sm text-gray-600">
+              <li>Privacidade</li>
+              <li>Termos</li>
+              <li>Cookies</li>
+            </ul>
+          </div>
+        </div>
+        <div className="border-t border-black pt-8 text-center text-sm text-gray-600">
+          <p>&copy; 2024 Design Academy. Todos os direitos reservados.</p>
         </div>
       </footer>
     </div>
